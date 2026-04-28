@@ -1,34 +1,26 @@
-# PyQt EXE Template Configuration
-# Application settings file
-
 app:
-  name: "PyQt EXE Template"
-  version: "1.0.0"
-  language: "en-US"
-
+  name: PyQt EXE Template
+  version: 1.0.0
+  language: en-US
 window:
   width: 1100
   height: 720
   minimum_width: 900
   minimum_height: 600
   remember_geometry: true
-  geometry: ""
-  state: ""
-
+  geometry: AdnQywADAAAAAACqAAAAJQAABPUAAAMRAAAAqgAAAEIAAAT1AAADEQAAAAAAAAAABaAAAACqAAAAQgAABPUAAAMR
+  state: ''
 network:
   timeout: 30
   retry_count: 2
-  default_url: "https://httpbin.org/get"
-
+  default_url: https://httpbin.org/get
 user_settings:
-  input_path: "./rundata/input"
-  output_path: "./rundata/output"
-
+  input_path: ./rundata/input
+  output_path: ./rundata/output
 features:
   enable_logs: true
   enable_status_bar: true
   enable_modern_style: true
-
 ui:
-  theme: "dark"
-  accent_color: "#4F8CFF"
+  theme: dark
+  accent_color: '#4F8CFF'
