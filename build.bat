@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
 
 cd /d "%~dp0"
-title PyQt EXE Template - 打包器
+title PyQt EXE Template - Builder
 
 set "VENV_DIR=.venv"
 set "VENV_PY=%VENV_DIR%\Scripts\python.exe"
@@ -13,72 +13,72 @@ set "SETUP_SCRIPT=setup.bat"
 set "SPEC_FILE=%APP_NAME%.spec"
 
 echo ========================================
-echo   PyQt EXE Template - 打包
+echo   PyQt EXE Template - Build
 echo ========================================
 echo.
 
-:: 检查必要文件
+:: Check required files
 if not exist "%SETUP_SCRIPT%" (
-    echo [错误] 未找到环境准备脚本：%SETUP_SCRIPT%
+    echo [ERROR] Setup script not found: %SETUP_SCRIPT%
     echo.
     pause
     exit /b 1
 )
 
 if not exist "%MAIN_SCRIPT%" (
-    echo [错误] 未找到主程序：%MAIN_SCRIPT%
+    echo [ERROR] Main script not found: %MAIN_SCRIPT%
     echo.
     pause
     exit /b 1
 )
 
-:: 执行环境准备
-echo [信息] 检查环境...
+:: Run setup
+echo [INFO] Checking environment...
 call "%SETUP_SCRIPT%"
 if errorlevel 1 (
-    echo [错误] setup 执行失败，无法继续打包。
+    echo [ERROR] Setup failed, cannot continue build.
     echo.
     pause
     exit /b 1
 )
 
-:: 确保 PyInstaller 已安装
-echo [信息] 检查 PyInstaller...
+:: Ensure PyInstaller is installed
+echo [INFO] Checking PyInstaller...
 "%VENV_PY%" -c "import PyInstaller" >nul 2>nul
 if errorlevel 1 (
-    echo [信息] 安装 PyInstaller ...
+    echo [INFO] Installing PyInstaller...
     "%VENV_PY%" -m pip install pyinstaller
     if errorlevel 1 (
-        echo [错误] 安装 PyInstaller 失败。
+        echo [ERROR] Failed to install PyInstaller.
         echo.
         pause
         exit /b 1
     )
 )
 
-:: 清理旧的构建文件
-echo [信息] 清理旧的构建文件...
+:: Clean old build files
+echo [INFO] Cleaning old build files...
 if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
 
-:: 检查图标文件
+:: Check icon file
 set "ICON_PARAM="
 if exist "app.ico" (
-    echo [信息] 使用应用图标: app.ico
+    echo [INFO] Using application icon: app.ico
     set "ICON_PARAM=--icon app.ico"
 ) else (
-    echo [警告] 未找到 app.ico，将使用默认图标
+    echo [WARNING] app.ico not found, using default icon
 )
 
-:: 执行打包
-echo [信息] 开始打包...
+:: Run build
+echo [INFO] Starting build...
 echo.
 
 if exist "%SPEC_FILE%" (
-    echo [信息] 使用现有的 spec 文件: %SPEC_FILE%
+    echo [INFO] Using existing spec file: %SPEC_FILE%
     "%VENV_PY%" -m PyInstaller "%SPEC_FILE%" --noconfirm --clean
 ) else (
-    echo [信息] 使用命令行参数打包...
+    echo [INFO] Building with command line parameters...
     "%VENV_PY%" -m PyInstaller ^
       --noconfirm ^
       --clean ^
@@ -99,7 +99,7 @@ if exist "%SPEC_FILE%" (
 
 if errorlevel 1 (
     echo.
-    echo [错误] PyInstaller 打包失败。
+    echo [ERROR] PyInstaller build failed.
     echo.
     pause
     exit /b 1
@@ -107,17 +107,17 @@ if errorlevel 1 (
 
 echo.
 echo ========================================
-echo [成功] 打包完成！
+echo [SUCCESS] Build complete!
 echo ========================================
 echo.
-echo 输出文件位置：
+echo Output file location:
 echo     dist\%APP_NAME%.exe
 echo.
 
-:: 检查输出文件
+:: Check output file
 if exist "dist\%APP_NAME%.exe" (
-    echo [信息] 文件大小：
-    for %%A in ("dist\%APP_NAME%.exe") do echo     %%~zA 字节
+    echo [INFO] File size:
+    for %%A in ("dist\%APP_NAME%.exe") do echo     %%~zA bytes
 )
 
 echo.

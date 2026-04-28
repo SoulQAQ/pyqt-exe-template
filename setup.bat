@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
 
 cd /d "%~dp0"
-title PyQt EXE Template - 环境安装器
+title PyQt EXE Template - Environment Setup
 
 set "VENV_DIR=.venv"
 set "VENV_PY=%VENV_DIR%\Scripts\python.exe"
@@ -13,43 +13,43 @@ set "SNAPSHOT_FILE=%VENV_DIR%\.requirements.snapshot"
 set "PYTHON_VERSION=3.12"
 
 echo ========================================
-echo   PyQt EXE Template - 环境准备
+echo   PyQt EXE Template - Environment Setup
 echo ========================================
 echo.
 
-:: 检查 py 启动器
+:: Check py launcher
 where py >nul 2>nul
 if errorlevel 1 (
-    echo [错误] 未找到 py 启动器。
-    echo 请先安装 Python %PYTHON_VERSION%，并确保勾选 Python Launcher。
+    echo [ERROR] py launcher not found.
+    echo Please install Python %PYTHON_VERSION% and ensure Python Launcher is selected.
     echo.
     pause
     exit /b 1
 )
 
-:: 检查指定 Python 版本
+:: Check Python version
 py -%PYTHON_VERSION% -c "import sys" >nul 2>nul
 if errorlevel 1 (
-    echo [错误] 未检测到 Python %PYTHON_VERSION%。
-    echo 请先安装 Python %PYTHON_VERSION%。
+    echo [ERROR] Python %PYTHON_VERSION% not detected.
+    echo Please install Python %PYTHON_VERSION%.
     echo.
     pause
     exit /b 1
 )
 
-:: 创建虚拟环境
+:: Create virtual environment
 if not exist "%VENV_PY%" (
-    echo [信息] 未检测到虚拟环境，正在创建...
+    echo [INFO] Virtual environment not found, creating...
     py -%PYTHON_VERSION% -m venv "%VENV_DIR%"
     if errorlevel 1 (
-        echo [错误] 创建虚拟环境失败。
+        echo [ERROR] Failed to create virtual environment.
         echo.
         pause
         exit /b 1
     )
 )
 
-:: 验证虚拟环境版本
+:: Verify virtual environment version
 set "VENV_VER="
 if exist "%VENV_CFG%" (
     for /f "tokens=1,* delims==" %%A in (%VENV_CFG%) do (
@@ -63,49 +63,49 @@ if exist "%VENV_CFG%" (
     )
 )
 
-echo [信息] 当前虚拟环境版本：%VENV_VER%
+echo [INFO] Current virtual environment version: %VENV_VER%
 echo %VENV_VER% | findstr /b "%PYTHON_VERSION%." >nul
 if errorlevel 1 (
-    echo [警告] 当前虚拟环境不是 Python %PYTHON_VERSION%，正在重建...
+    echo [WARNING] Current virtual environment is not Python %PYTHON_VERSION%, rebuilding...
     rmdir /s /q "%VENV_DIR%"
     py -%PYTHON_VERSION% -m venv "%VENV_DIR%"
     if errorlevel 1 (
-        echo [错误] 重建虚拟环境失败。
+        echo [ERROR] Failed to rebuild virtual environment.
         echo.
         pause
         exit /b 1
     )
 )
 
-:: 升级基础工具
-echo [信息] 升级 pip / setuptools / wheel ...
+:: Upgrade base tools
+echo [INFO] Upgrading pip / setuptools / wheel ...
 "%VENV_PY%" -m pip install --upgrade pip setuptools wheel
 if errorlevel 1 (
-    echo [错误] 升级基础工具失败。
+    echo [ERROR] Failed to upgrade base tools.
     echo.
     pause
     exit /b 1
 )
 
-:: 安装依赖
+:: Install dependencies
 if exist "%REQUIREMENTS%" (
-    echo [信息] 正在安装 requirements.txt 中的依赖...
+    echo [INFO] Installing dependencies from requirements.txt...
     "%VENV_PY%" -m pip install -r "%REQUIREMENTS%"
     if errorlevel 1 (
-        echo [错误] 安装 requirements.txt 依赖失败。
+        echo [ERROR] Failed to install dependencies from requirements.txt.
         echo.
         pause
         exit /b 1
     )
     copy /y "%REQUIREMENTS%" "%SNAPSHOT_FILE%" >nul
 ) else (
-    echo [警告] 未找到 requirements.txt
+    echo [WARNING] requirements.txt not found
     pause
     exit /b 1
 )
 
 echo.
-echo [成功] 环境准备完成。
+echo [SUCCESS] Environment setup complete.
 echo.
 endlocal
 exit /b 0
