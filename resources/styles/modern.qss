@@ -19,6 +19,53 @@ QWidget {
 }
 
 /* ============================================================================
+ * 自定义标题栏
+ * ============================================================================ */
+
+QWidget[class="title-bar"] {
+    background-color: #1E293B;
+    border-bottom: 1px solid #334155;
+}
+
+QLabel[class="title-icon"] {
+    color: #4F8CFF;
+    font-size: 16pt;
+    padding-right: 5px;
+}
+
+QLabel[class="title-text"] {
+    color: #E2E8F0;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+QPushButton[class="title-btn"] {
+    background-color: transparent;
+    color: #94A3B8;
+    border: none;
+    border-radius: 0;
+    font-size: 12pt;
+}
+
+QPushButton[class="title-btn"]:hover {
+    background-color: #334155;
+    color: #E2E8F0;
+}
+
+QPushButton[class="title-btn-close"] {
+    background-color: transparent;
+    color: #94A3B8;
+    border: none;
+    border-radius: 0;
+    font-size: 12pt;
+}
+
+QPushButton[class="title-btn-close"]:hover {
+    background-color: #EF4444;
+    color: #FFFFFF;
+}
+
+/* ============================================================================
  * 导航栏
  * ============================================================================ */
 

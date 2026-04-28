@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 PyQt 主窗口模块
-提供应用程序的主界面，包含现代化深色主题 UI
+提供应用程序的主界面，包含现代化深色主题 UI（中文版）
 """
 
 import json
 from typing import Optional
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize
-from PyQt6.QtGui import QAction, QFont, QIcon
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QPoint
+from PyQt6.QtGui import QAction, QFont, QIcon, QCursor
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QLineEdit, QTextEdit, QComboBox, QFrame,
     QStackedWidget, QStatusBar, QMenuBar, QToolBar, QMessageBox,
-    QProgressBar, QFileDialog, QScrollArea, QSizePolicy, QGroupBox
+    QProgressBar, QFileDialog, QScrollArea, QSizePolicy, QGroupBox,
+    QSpacerItem
 )
 
 from script.config_manager import get_config_manager, ConfigManager
@@ -88,6 +89,98 @@ class HttpRequestWorker(QThread):
 
 
 # ============================================================================
+# 自定义标题栏
+# ============================================================================
+
+class TitleBar(QWidget):
+    """自定义标题栏"""
+    
+    def __init__(self, parent: Optional[QMainWindow] = None):
+        super().__init__(parent)
+        self.parent_window = parent
+        self.pressing = False
+        self.start_pos = QPoint()
+        self.setup_ui()
+    
+    def setup_ui(self) -> None:
+        self.setFixedHeight(40)
+        self.setProperty("class", "title-bar")
+        
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 0, 10, 0)
+        layout.setSpacing(0)
+        
+        # 应用图标和标题
+        self.icon_label = QLabel("⚡")
+        self.icon_label.setProperty("class", "title-icon")
+        layout.addWidget(self.icon_label)
+        
+        self.title_label = QLabel("PyQt EXE 模板")
+        self.title_label.setProperty("class", "title-text")
+        layout.addWidget(self.title_label)
+        
+        layout.addStretch()
+        
+        # 窗口控制按钮
+        self.min_btn = QPushButton("─")
+        self.min_btn.setProperty("class", "title-btn")
+        self.min_btn.setFixedSize(40, 40)
+        self.min_btn.clicked.connect(self.minimize_window)
+        layout.addWidget(self.min_btn)
+        
+        self.max_btn = QPushButton("□")
+        self.max_btn.setProperty("class", "title-btn")
+        self.max_btn.setFixedSize(40, 40)
+        self.max_btn.clicked.connect(self.toggle_maximize)
+        layout.addWidget(self.max_btn)
+        
+        self.close_btn = QPushButton("✕")
+        self.close_btn.setProperty("class", "title-btn-close")
+        self.close_btn.setFixedSize(40, 40)
+        self.close_btn.clicked.connect(self.close_window)
+        layout.addWidget(self.close_btn)
+    
+    def minimize_window(self) -> None:
+        if self.parent_window:
+            self.parent_window.showMinimized()
+    
+    def toggle_maximize(self) -> None:
+        if self.parent_window:
+            if self.parent_window.isMaximized():
+                self.parent_window.showNormal()
+                self.max_btn.setText("□")
+            else:
+                self.parent_window.showMaximized()
+                self.max_btn.setText("❐")
+    
+    def close_window(self) -> None:
+        if self.parent_window:
+            self.parent_window.close()
+    
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.pressing = True
+            self.start_pos = event.globalPosition().toPoint()
+    
+    def mouseMoveEvent(self, event) -> None:
+        if self.pressing and self.parent_window:
+            if self.parent_window.isMaximized():
+                self.parent_window.showNormal()
+                self.max_btn.setText("□")
+            end_pos = event.globalPosition().toPoint()
+            move = end_pos - self.start_pos
+            new_pos = self.parent_window.pos() + move
+            self.parent_window.move(new_pos)
+            self.start_pos = end_pos
+    
+    def mouseReleaseEvent(self, event) -> None:
+        self.pressing = False
+    
+    def mouseDoubleClickEvent(self, event) -> None:
+        self.toggle_maximize()
+
+
+# ============================================================================
 # 导航按钮
 # ============================================================================
 
@@ -150,12 +243,12 @@ class DashboardPage(QWidget):
         layout.setSpacing(20)
         
         # 欢迎标题
-        welcome_label = QLabel("Welcome to PyQt EXE Template")
+        welcome_label = QLabel("欢迎使用 PyQt EXE 模板")
         welcome_label.setProperty("class", "page-title")
         welcome_label.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
         layout.addWidget(welcome_label)
         
-        subtitle = QLabel("A modern PyQt6 desktop application template with HTTP client support")
+        subtitle = QLabel("一个现代化的 PyQt6 桌面应用程序模板，内置 HTTP 客户端支持")
         subtitle.setProperty("class", "page-subtitle")
         layout.addWidget(subtitle)
         
@@ -165,16 +258,16 @@ class DashboardPage(QWidget):
         cards_layout = QHBoxLayout()
         cards_layout.setSpacing(15)
         
-        card1 = CardWidget("PyQt6 UI", "Modern dark theme with QSS styling")
+        card1 = CardWidget("🎨 PyQt6 界面", "现代深色主题，QSS 样式")
         cards_layout.addWidget(card1)
         
-        card2 = CardWidget("HTTP Client", "Built-in HTTP request testing tool")
+        card2 = CardWidget("🌐 HTTP 客户端", "内置 HTTP 请求测试工具")
         cards_layout.addWidget(card2)
         
-        card3 = CardWidget("Config Manager", "YAML-based configuration system")
+        card3 = CardWidget("⚙️ 配置管理", "基于 YAML 的配置系统")
         cards_layout.addWidget(card3)
         
-        card4 = CardWidget("PyInstaller", "Easy Windows EXE packaging")
+        card4 = CardWidget("📦 PyInstaller", "轻松打包 Windows EXE")
         cards_layout.addWidget(card4)
         
         layout.addLayout(cards_layout)
@@ -182,7 +275,7 @@ class DashboardPage(QWidget):
         layout.addSpacing(20)
         
         # 快捷操作区域
-        actions_label = QLabel("Quick Actions")
+        actions_label = QLabel("快捷操作")
         actions_label.setProperty("class", "section-title")
         actions_label.setFont(QFont("Microsoft YaHei UI", 14, QFont.Weight.Bold))
         layout.addWidget(actions_label)
@@ -190,17 +283,17 @@ class DashboardPage(QWidget):
         actions_layout = QHBoxLayout()
         actions_layout.setSpacing(10)
         
-        self.open_config_btn = QPushButton("Open Config Folder")
+        self.open_config_btn = QPushButton("📁 打开配置目录")
         self.open_config_btn.setProperty("class", "action-button")
         self.open_config_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         actions_layout.addWidget(self.open_config_btn)
         
-        self.open_output_btn = QPushButton("Open Output Folder")
+        self.open_output_btn = QPushButton("📂 打开输出目录")
         self.open_output_btn.setProperty("class", "action-button")
         self.open_output_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         actions_layout.addWidget(self.open_output_btn)
         
-        self.test_http_btn = QPushButton("Test HTTP Request")
+        self.test_http_btn = QPushButton("🚀 测试 HTTP 请求")
         self.test_http_btn.setProperty("class", "action-button")
         self.test_http_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         actions_layout.addWidget(self.test_http_btn)
@@ -230,12 +323,12 @@ class HttpClientPage(QWidget):
         layout.setSpacing(15)
         
         # 页面标题
-        title = QLabel("HTTP Client")
+        title = QLabel("HTTP 客户端")
         title.setProperty("class", "page-title")
         title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
         layout.addWidget(title)
         
-        desc = QLabel("Test HTTP requests with custom headers and body")
+        desc = QLabel("测试 HTTP 请求，支持自定义请求头和请求体")
         desc.setProperty("class", "page-subtitle")
         layout.addWidget(desc)
         
@@ -244,7 +337,7 @@ class HttpClientPage(QWidget):
         # URL 和 Method 行
         url_layout = QHBoxLayout()
         
-        method_label = QLabel("Method:")
+        method_label = QLabel("方法：")
         method_label.setFixedWidth(60)
         url_layout.addWidget(method_label)
         
@@ -253,12 +346,12 @@ class HttpClientPage(QWidget):
         self.method_combo.setFixedWidth(100)
         url_layout.addWidget(self.method_combo)
         
-        url_label = QLabel("URL:")
+        url_label = QLabel("URL：")
         url_label.setFixedWidth(40)
         url_layout.addWidget(url_label)
         
         self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("Enter URL...")
+        self.url_input.setPlaceholderText("输入 URL...")
         default_url = self.config_manager.get('network.default_url', 'https://httpbin.org/get')
         self.url_input.setText(default_url)
         url_layout.addWidget(self.url_input)
@@ -266,7 +359,7 @@ class HttpClientPage(QWidget):
         layout.addLayout(url_layout)
         
         # Headers 输入
-        headers_label = QLabel("Headers (JSON):")
+        headers_label = QLabel("请求头 (JSON)：")
         layout.addWidget(headers_label)
         
         self.headers_input = QTextEdit()
@@ -276,7 +369,7 @@ class HttpClientPage(QWidget):
         layout.addWidget(self.headers_input)
         
         # Body 输入
-        self.body_label = QLabel("Body (JSON):")
+        self.body_label = QLabel("请求体 (JSON)：")
         layout.addWidget(self.body_label)
         
         self.body_input = QTextEdit()
@@ -288,13 +381,13 @@ class HttpClientPage(QWidget):
         # 发送按钮
         btn_layout = QHBoxLayout()
         
-        self.send_btn = QPushButton("Send Request")
+        self.send_btn = QPushButton("发送请求")
         self.send_btn.setProperty("class", "primary-button")
         self.send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.send_btn.clicked.connect(self.send_request)
         btn_layout.addWidget(self.send_btn)
         
-        self.clear_btn = QPushButton("Clear")
+        self.clear_btn = QPushButton("清空")
         self.clear_btn.setProperty("class", "secondary-button")
         self.clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.clear_btn.clicked.connect(self.clear_response)
@@ -304,17 +397,17 @@ class HttpClientPage(QWidget):
         layout.addLayout(btn_layout)
         
         # 响应区域
-        response_label = QLabel("Response:")
+        response_label = QLabel("响应：")
         layout.addWidget(response_label)
         
         # 状态信息行
         status_layout = QHBoxLayout()
         
-        self.status_label = QLabel("Status: -")
+        self.status_label = QLabel("状态：-")
         self.status_label.setProperty("class", "status-label")
         status_layout.addWidget(self.status_label)
         
-        self.time_label = QLabel("Time: -")
+        self.time_label = QLabel("耗时：-")
         self.time_label.setProperty("class", "time-label")
         status_layout.addWidget(self.time_label)
         
@@ -325,14 +418,14 @@ class HttpClientPage(QWidget):
         self.response_output = QTextEdit()
         self.response_output.setReadOnly(True)
         self.response_output.setFont(QFont("Consolas", 10))
-        self.response_output.setPlaceholderText("Response will appear here...")
+        self.response_output.setPlaceholderText("响应内容将显示在这里...")
         layout.addWidget(self.response_output)
     
     def send_request(self) -> None:
         """发送 HTTP 请求"""
         url = self.url_input.text().strip()
         if not url:
-            QMessageBox.warning(self, "Warning", "Please enter a URL")
+            QMessageBox.warning(self, "警告", "请输入 URL")
             return
         
         method = self.method_combo.currentText()
@@ -343,14 +436,14 @@ class HttpClientPage(QWidget):
         if headers_text:
             headers = safe_json_loads(headers_text, {})
             if headers is None:
-                QMessageBox.warning(self, "Warning", "Invalid JSON in Headers")
+                QMessageBox.warning(self, "警告", "请求头 JSON 格式无效")
                 return
         
         timeout = self.config_manager.get('network.timeout', 30)
         
         self.send_btn.setEnabled(False)
-        self.send_btn.setText("Sending...")
-        self.status_label.setText("Status: Sending...")
+        self.send_btn.setText("发送中...")
+        self.status_label.setText("状态：发送中...")
         
         self.worker = HttpRequestWorker(
             method=method,
@@ -366,40 +459,40 @@ class HttpClientPage(QWidget):
     def on_request_finished(self, response: HttpResponse) -> None:
         """请求完成回调"""
         self.send_btn.setEnabled(True)
-        self.send_btn.setText("Send Request")
+        self.send_btn.setText("发送请求")
         
         status_color = "#22C55E" if response.success else "#EF4444"
-        self.status_label.setText(f"Status: {response.status_code}")
+        self.status_label.setText(f"状态：{response.status_code}")
         self.status_label.setStyleSheet(f"color: {status_color}; font-weight: bold;")
         
-        self.time_label.setText(f"Time: {response.elapsed_ms:.0f} ms")
+        self.time_label.setText(f"耗时：{response.elapsed_ms:.0f} 毫秒")
         
         if response.data is not None:
             formatted = format_json(response.data)
             self.response_output.setPlainText(formatted)
         else:
-            self.response_output.setPlainText(response.text or "(Empty response)")
+            self.response_output.setPlainText(response.text or "(空响应)")
         
         if not response.success:
-            self.response_output.append(f"\n\n--- Error ---\n{response.message}")
+            self.response_output.append(f"\n\n--- 错误 ---\n{response.message}")
     
     def on_request_error(self, error: str) -> None:
         """请求错误回调"""
         self.send_btn.setEnabled(True)
-        self.send_btn.setText("Send Request")
+        self.send_btn.setText("发送请求")
         
-        self.status_label.setText("Status: Error")
+        self.status_label.setText("状态：错误")
         self.status_label.setStyleSheet("color: #EF4444; font-weight: bold;")
-        self.time_label.setText("Time: -")
+        self.time_label.setText("耗时：-")
         
-        self.response_output.setPlainText(f"Request failed:\n{error}")
+        self.response_output.setPlainText(f"请求失败：\n{error}")
     
     def clear_response(self) -> None:
         """清空响应"""
         self.response_output.clear()
-        self.status_label.setText("Status: -")
+        self.status_label.setText("状态：-")
         self.status_label.setStyleSheet("")
-        self.time_label.setText("Time: -")
+        self.time_label.setText("耗时：-")
 
 
 # ============================================================================
@@ -421,25 +514,25 @@ class SettingsPage(QWidget):
         layout.setSpacing(15)
         
         # 页面标题
-        title = QLabel("Settings")
+        title = QLabel("设置")
         title.setProperty("class", "page-title")
         title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
         layout.addWidget(title)
         
-        desc = QLabel("Configure application settings")
+        desc = QLabel("配置应用程序设置")
         desc.setProperty("class", "page-subtitle")
         layout.addWidget(desc)
         
         layout.addSpacing(10)
         
         # 应用设置组
-        app_group = QGroupBox("Application")
+        app_group = QGroupBox("应用程序")
         app_group.setProperty("class", "settings-group")
         app_layout = QVBoxLayout(app_group)
         
         # App Name
         name_layout = QHBoxLayout()
-        name_label = QLabel("App Name:")
+        name_label = QLabel("应用名称：")
         name_label.setFixedWidth(120)
         self.name_input = QLineEdit()
         name_layout.addWidget(name_label)
@@ -448,7 +541,7 @@ class SettingsPage(QWidget):
         
         # App Version
         version_layout = QHBoxLayout()
-        version_label = QLabel("App Version:")
+        version_label = QLabel("应用版本：")
         version_label.setFixedWidth(120)
         self.version_input = QLineEdit()
         version_layout.addWidget(version_label)
@@ -458,13 +551,13 @@ class SettingsPage(QWidget):
         layout.addWidget(app_group)
         
         # 网络设置组
-        network_group = QGroupBox("Network")
+        network_group = QGroupBox("网络")
         network_group.setProperty("class", "settings-group")
         network_layout = QVBoxLayout(network_group)
         
         # Timeout
         timeout_layout = QHBoxLayout()
-        timeout_label = QLabel("Timeout (s):")
+        timeout_label = QLabel("超时时间(秒)：")
         timeout_label.setFixedWidth(120)
         self.timeout_input = QLineEdit()
         timeout_layout.addWidget(timeout_label)
@@ -474,16 +567,16 @@ class SettingsPage(QWidget):
         layout.addWidget(network_group)
         
         # 用户设置组
-        user_group = QGroupBox("User Settings")
+        user_group = QGroupBox("用户设置")
         user_group.setProperty("class", "settings-group")
         user_layout = QVBoxLayout(user_group)
         
         # Output Path
         output_layout = QHBoxLayout()
-        output_label = QLabel("Output Path:")
+        output_label = QLabel("输出路径：")
         output_label.setFixedWidth(120)
         self.output_input = QLineEdit()
-        browse_btn = QPushButton("Browse")
+        browse_btn = QPushButton("浏览")
         browse_btn.clicked.connect(self.browse_output)
         output_layout.addWidget(output_label)
         output_layout.addWidget(self.output_input)
@@ -497,13 +590,13 @@ class SettingsPage(QWidget):
         # 保存按钮
         btn_layout = QHBoxLayout()
         
-        self.save_btn = QPushButton("Save Settings")
+        self.save_btn = QPushButton("保存设置")
         self.save_btn.setProperty("class", "primary-button")
         self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.save_btn.clicked.connect(self.save_settings)
         btn_layout.addWidget(self.save_btn)
         
-        self.reset_btn = QPushButton("Reset to Defaults")
+        self.reset_btn = QPushButton("恢复默认")
         self.reset_btn.setProperty("class", "secondary-button")
         self.reset_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.reset_btn.clicked.connect(self.reset_settings)
@@ -516,7 +609,7 @@ class SettingsPage(QWidget):
     
     def load_settings(self) -> None:
         """加载设置"""
-        self.name_input.setText(self.config_manager.get('app.name', 'PyQt EXE Template'))
+        self.name_input.setText(self.config_manager.get('app.name', 'PyQt EXE 模板'))
         self.version_input.setText(self.config_manager.get('app.version', '1.0.0'))
         self.timeout_input.setText(str(self.config_manager.get('network.timeout', 30)))
         self.output_input.setText(self.config_manager.get('user_settings.output_path', './rundata/output'))
@@ -529,28 +622,28 @@ class SettingsPage(QWidget):
             self.config_manager.set('network.timeout', int(self.timeout_input.text()))
             self.config_manager.set('user_settings.output_path', self.output_input.text())
             
-            QMessageBox.information(self, "Success", "Settings saved successfully!")
+            QMessageBox.information(self, "成功", "设置已保存！")
         except ValueError:
-            QMessageBox.warning(self, "Warning", "Invalid timeout value. Please enter a number.")
+            QMessageBox.warning(self, "警告", "超时时间必须是数字")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save settings: {str(e)}")
+            QMessageBox.critical(self, "错误", f"保存设置失败：{str(e)}")
     
     def reset_settings(self) -> None:
         """重置设置"""
         reply = QMessageBox.question(
-            self, "Confirm Reset",
-            "Are you sure you want to reset all settings to defaults?",
+            self, "确认重置",
+            "确定要恢复默认设置吗？",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         
         if reply == QMessageBox.StandardButton.Yes:
             self.config_manager.reset_to_defaults()
             self.load_settings()
-            QMessageBox.information(self, "Success", "Settings reset to defaults!")
+            QMessageBox.information(self, "成功", "已恢复默认设置！")
     
     def browse_output(self) -> None:
         """浏览输出目录"""
-        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        folder = QFileDialog.getExistingDirectory(self, "选择输出目录")
         if folder:
             self.output_input.setText(folder)
 
@@ -573,7 +666,7 @@ class AboutPage(QWidget):
         layout.setSpacing(20)
         
         # 页面标题
-        title = QLabel("About")
+        title = QLabel("关于")
         title.setProperty("class", "page-title")
         title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
         layout.addWidget(title)
@@ -583,26 +676,26 @@ class AboutPage(QWidget):
         # 项目信息卡片
         info_card = CardWidget("", "")
         
-        app_name = self.config_manager.get('app.name', 'PyQt EXE Template')
+        app_name = self.config_manager.get('app.name', 'PyQt EXE 模板')
         app_version = self.config_manager.get('app.version', '1.0.0')
         
         info_text = f"""
 <h2>{app_name}</h2>
-<p style="color: #94A3B8;">Version {app_version}</p>
+<p style="color: #94A3B8;">版本 {app_version}</p>
 <br>
-<p>A modern PyQt6 desktop application template with:</p>
+<p>一个现代化的 PyQt6 桌面应用程序模板，包含：</p>
 <ul>
-  <li>Modern dark theme UI with QSS styling</li>
-  <li>Built-in HTTP client for API testing</li>
-  <li>YAML-based configuration management</li>
-  <li>PyInstaller packaging support</li>
-  <li>Cross-platform compatibility</li>
+  <li>现代深色主题 UI，QSS 样式</li>
+  <li>内置 HTTP 客户端，用于 API 测试</li>
+  <li>基于 YAML 的配置管理</li>
+  <li>PyInstaller 打包支持</li>
+  <li>跨平台兼容</li>
 </ul>
 <br>
-<p><b>Technology Stack:</b></p>
+<p><b>技术栈：</b></p>
 <p>Python 3.12 | PyQt6 | requests | PyYAML | PyInstaller</p>
 <br>
-<p><b>GitHub Repository:</b></p>
+<p><b>GitHub 仓库：</b></p>
 <p style="color: #4F8CFF;"><a href="https://github.com/SoulQAQ/pyqt-exe-template" style="color: #4F8CFF;">https://github.com/SoulQAQ/pyqt-exe-template</a></p>
 """
         info_label = QLabel(info_text)
@@ -632,20 +725,25 @@ class MainWindow(QMainWindow):
         self.config_manager = get_config_manager()
         self.config = self.config_manager.load()
         
+        # 设置无边框窗口
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowMinMaxButtonsHint
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
+        
         self._init_ui()
         self._init_menu()
-        self._init_toolbar()
         self._init_statusbar()
         self._load_window_state()
         self._connect_signals()
         
-        self.logger.info("MainWindow initialized")
+        self.logger.info("主窗口初始化完成")
 
     def _init_ui(self) -> None:
         """初始化用户界面"""
         # 窗口设置
-        app_name = self.config_manager.get('app.name', 'PyQt EXE Template')
-        self.setWindowTitle(app_name)
+        app_name = self.config_manager.get('app.name', 'PyQt EXE 模板')
         
         min_width = self.config_manager.get('window.minimum_width', 900)
         min_height = self.config_manager.get('window.minimum_height', 600)
@@ -678,35 +776,32 @@ class MainWindow(QMainWindow):
         nav_widget.setFixedWidth(220)
         
         nav_layout = QVBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(10, 20, 10, 20)
+        nav_layout.setContentsMargins(10, 0, 10, 20)
         nav_layout.setSpacing(5)
         
-        # Logo/标题
-        logo_label = QLabel("PyQt Template")
-        logo_label.setProperty("class", "nav-logo")
-        logo_label.setFont(QFont("Microsoft YaHei UI", 16, QFont.Weight.Bold))
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        nav_layout.addWidget(logo_label)
+        # 自定义标题栏
+        self.title_bar = TitleBar(self)
+        nav_layout.addWidget(self.title_bar)
         
-        nav_layout.addSpacing(30)
+        nav_layout.addSpacing(20)
         
         # 导航按钮
         self.nav_buttons = []
         
-        self.dashboard_btn = NavButton("Dashboard", "H")
+        self.dashboard_btn = NavButton("首页", "H")
         self.dashboard_btn.setChecked(True)
         nav_layout.addWidget(self.dashboard_btn)
         self.nav_buttons.append(self.dashboard_btn)
         
-        self.http_btn = NavButton("HTTP Client", "G")
+        self.http_btn = NavButton("HTTP 客户端", "G")
         nav_layout.addWidget(self.http_btn)
         self.nav_buttons.append(self.http_btn)
         
-        self.settings_btn = NavButton("Settings", "S")
+        self.settings_btn = NavButton("设置", "S")
         nav_layout.addWidget(self.settings_btn)
         self.nav_buttons.append(self.settings_btn)
         
-        self.about_btn = NavButton("About", "i")
+        self.about_btn = NavButton("关于", "i")
         nav_layout.addWidget(self.about_btn)
         self.nav_buttons.append(self.about_btn)
         
@@ -745,61 +840,44 @@ class MainWindow(QMainWindow):
         """初始化菜单栏"""
         menubar = self.menuBar()
         
-        # File 菜单
-        file_menu = menubar.addMenu("File")
+        # 文件 菜单
+        file_menu = menubar.addMenu("文件(&F)")
         
-        open_config_action = QAction("Open Config Folder", self)
+        open_config_action = QAction("打开配置目录", self)
         open_config_action.triggered.connect(lambda: open_folder(CONFIG_DIR))
         file_menu.addAction(open_config_action)
         
-        open_output_action = QAction("Open Output Folder", self)
+        open_output_action = QAction("打开输出目录", self)
         open_output_action.triggered.connect(lambda: open_folder(OUTPUT_DIR))
         file_menu.addAction(open_output_action)
         
         file_menu.addSeparator()
         
-        exit_action = QAction("Exit", self)
+        exit_action = QAction("退出(&X)", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
         
-        # Tools 菜单
-        tools_menu = menubar.addMenu("Tools")
+        # 工具 菜单
+        tools_menu = menubar.addMenu("工具(&T)")
         
-        test_http_action = QAction("Test HTTP Request", self)
+        test_http_action = QAction("测试 HTTP 请求", self)
         test_http_action.triggered.connect(lambda: self._switch_page(1))
         tools_menu.addAction(test_http_action)
         
-        # Help 菜单
-        help_menu = menubar.addMenu("Help")
+        # 帮助 菜单
+        help_menu = menubar.addMenu("帮助(&H)")
         
-        about_action = QAction("About", self)
+        about_action = QAction("关于", self)
         about_action.triggered.connect(lambda: self._switch_page(3))
         help_menu.addAction(about_action)
-
-    def _init_toolbar(self) -> None:
-        """初始化工具栏"""
-        toolbar = self.addToolBar("Main")
-        toolbar.setMovable(False)
-        
-        home_action = QAction("Home", self)
-        home_action.triggered.connect(lambda: self._switch_page(0))
-        toolbar.addAction(home_action)
-        
-        http_action = QAction("HTTP", self)
-        http_action.triggered.connect(lambda: self._switch_page(1))
-        toolbar.addAction(http_action)
-        
-        settings_action = QAction("Settings", self)
-        settings_action.triggered.connect(lambda: self._switch_page(2))
-        toolbar.addAction(settings_action)
 
     def _init_statusbar(self) -> None:
         """初始化状态栏"""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         
-        self.status_bar.showMessage("Ready")
+        self.status_bar.showMessage("就绪")
         
         # 进度条
         self.progress_bar = QProgressBar()
@@ -814,15 +892,14 @@ class MainWindow(QMainWindow):
             if geometry:
                 try:
                     import base64
-                    self.restoreGeometry(base64.b64decode(geometry))
+                    self.restoreGeometry(bytes.fromhex(geometry))
                 except Exception:
                     pass
 
     def _save_window_state(self) -> None:
         """保存窗口状态"""
         if self.config_manager.get('window.remember_geometry', True):
-            import base64
-            geometry = base64.b64encode(self.saveGeometry()).decode('utf-8')
+            geometry = self.saveGeometry().toHex().data().decode()
             self.config_manager.set('window.geometry', geometry)
 
     def _connect_signals(self) -> None:
@@ -847,11 +924,11 @@ class MainWindow(QMainWindow):
             btn.setChecked(i == index)
         
         # 更新状态栏
-        page_names = ["Dashboard", "HTTP Client", "Settings", "About"]
+        page_names = ["首页", "HTTP 客户端", "设置", "关于"]
         self.status_bar.showMessage(f"{page_names[index]}")
 
     def closeEvent(self, event) -> None:
         """窗口关闭事件"""
         self._save_window_state()
-        self.logger.info("Application closing")
+        self.logger.info("应用程序关闭")
         event.accept()
