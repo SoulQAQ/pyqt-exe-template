@@ -4,6 +4,8 @@
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.6+-green.svg)](https://www.riverbankcomputing.com/software/pyqt/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 一个现代化的 PyQt6 桌面应用程序模板，内置 HTTP 客户端支持、配置管理功能和 PyInstaller 打包能力。
 
 ## 项目简介

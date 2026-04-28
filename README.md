@@ -4,6 +4,8 @@
 [![PyQt6](https://img.shields.io/badge/PyQt6-6.6+-green.svg)](https://www.riverbankcomputing.com/software/pyqt/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 A modern PyQt6 desktop application template with HTTP client support, configuration management, and PyInstaller packaging capability.
 
 ## Overview
