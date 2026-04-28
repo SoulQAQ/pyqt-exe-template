@@ -8,6 +8,12 @@ PyQt EXE Template - 程序入口
 import sys
 from pathlib import Path
 
+# 添加项目根目录到 Python 路径
+# 这样无论从哪里运行，都能正确导入 script 模块
+_project_root = Path(__file__).resolve().parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
