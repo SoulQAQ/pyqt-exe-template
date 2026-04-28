@@ -133,8 +133,14 @@ python generate_icons.py
 
 ### 4. 启动程序
 
+**使用 pip（传统方式）：**
 ```bash
 start.bat
+```
+
+**使用 uv（更快）：**
+```bash
+start-uv.bat
 ```
 
 或直接运行：

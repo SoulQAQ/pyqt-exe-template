@@ -133,8 +133,14 @@ python generate_icons.py
 
 ### 4. Run the Application
 
+**Using pip (traditional):**
 ```bash
 start.bat
+```
+
+**Using uv (faster):**
+```bash
+start-uv.bat
 ```
 
 Or directly:
