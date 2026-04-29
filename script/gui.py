@@ -759,13 +759,23 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         
         # 主布局
-        main_layout = QHBoxLayout(central_widget)
+        root_layout = QVBoxLayout(central_widget)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
+
+        # 顶部自定义标题栏
+        self.title_bar = TitleBar(self)
+        root_layout.addWidget(self.title_bar)
+
+        # 主体区域（左侧导航 + 右侧内容）
+        main_layout = QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        
+        root_layout.addLayout(main_layout)
+
         # 左侧导航栏
         self._create_navbar(main_layout)
-        
+
         # 右侧内容区
         self._create_content_area(main_layout)
 
@@ -778,10 +788,6 @@ class MainWindow(QMainWindow):
         nav_layout = QVBoxLayout(nav_widget)
         nav_layout.setContentsMargins(10, 0, 10, 20)
         nav_layout.setSpacing(5)
-        
-        # 自定义标题栏
-        self.title_bar = TitleBar(self)
-        nav_layout.addWidget(self.title_bar)
         
         nav_layout.addSpacing(20)
         

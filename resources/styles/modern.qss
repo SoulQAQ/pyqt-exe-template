@@ -12,7 +12,6 @@ QMainWindow {
 }
 
 QWidget {
-    background-color: #0F172A;
     color: #E2E8F0;
     font-family: "Microsoft YaHei UI", "Segoe UI", Arial;
     font-size: 10pt;
@@ -41,10 +40,13 @@ QLabel[class="title-text"] {
 
 QPushButton[class="title-btn"] {
     background-color: transparent;
-    color: #94A3B8;
+    color: #E2E8F0;
     border: none;
     border-radius: 0;
     font-size: 12pt;
+    font-weight: 600;
+    padding: 0;
+    min-height: 0;
 }
 
 QPushButton[class="title-btn"]:hover {
@@ -54,10 +56,13 @@ QPushButton[class="title-btn"]:hover {
 
 QPushButton[class="title-btn-close"] {
     background-color: transparent;
-    color: #94A3B8;
+    color: #E2E8F0;
     border: none;
     border-radius: 0;
     font-size: 12pt;
+    font-weight: 700;
+    padding: 0;
+    min-height: 0;
 }
 
 QPushButton[class="title-btn-close"]:hover {
