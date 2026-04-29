@@ -93,57 +93,64 @@ class HttpRequestWorker(QThread):
 # ============================================================================
 
 class TitleBar(QWidget):
-    """自定义标题栏"""
-    
+    """自定义标题栏（作为工具栏容器）"""
+
     def __init__(self, parent: Optional[QMainWindow] = None):
         super().__init__(parent)
         self.parent_window = parent
         self.pressing = False
         self.start_pos = QPoint()
         self.setup_ui()
-    
+
     def setup_ui(self) -> None:
         self.setFixedHeight(40)
         self.setProperty("class", "title-bar")
-        
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 0, 10, 0)
-        layout.setSpacing(0)
-        
-        # 应用图标和标题
-        self.icon_label = QLabel("⚡")
-        self.icon_label.setProperty("class", "title-icon")
-        layout.addWidget(self.icon_label)
-        
-        self.title_label = QLabel("PyQt EXE 模板")
-        self.title_label.setProperty("class", "title-text")
-        layout.addWidget(self.title_label)
-        
-        layout.addStretch()
-        
-        # 窗口控制按钮
+
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
+
+    def set_center_widget(self, widget: QWidget) -> None:
+        """设置中间区域（左侧菜单 + 中间拖拽空白区）"""
+        self.layout.addWidget(widget, 0)
+
+        self.drag_zone = QWidget()
+        self.drag_zone.setProperty("class", "title-drag-zone")
+        self.drag_zone.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.drag_zone.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.layout.addWidget(self.drag_zone, 1)
+
+    def add_window_buttons(self) -> None:
+        """添加窗口控制按钮到右侧"""
+        btn_container = QWidget()
+        btn_layout = QHBoxLayout(btn_container)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(0)
+
         self.min_btn = QPushButton("─")
         self.min_btn.setProperty("class", "title-btn")
         self.min_btn.setFixedSize(40, 40)
         self.min_btn.clicked.connect(self.minimize_window)
-        layout.addWidget(self.min_btn)
-        
+        btn_layout.addWidget(self.min_btn)
+
         self.max_btn = QPushButton("□")
         self.max_btn.setProperty("class", "title-btn")
         self.max_btn.setFixedSize(40, 40)
         self.max_btn.clicked.connect(self.toggle_maximize)
-        layout.addWidget(self.max_btn)
-        
+        btn_layout.addWidget(self.max_btn)
+
         self.close_btn = QPushButton("✕")
         self.close_btn.setProperty("class", "title-btn-close")
         self.close_btn.setFixedSize(40, 40)
         self.close_btn.clicked.connect(self.close_window)
-        layout.addWidget(self.close_btn)
-    
+        btn_layout.addWidget(self.close_btn)
+
+        self.layout.addWidget(btn_container, 0)
+
     def minimize_window(self) -> None:
         if self.parent_window:
             self.parent_window.showMinimized()
-    
+
     def toggle_maximize(self) -> None:
         if self.parent_window:
             if self.parent_window.isMaximized():
@@ -152,16 +159,16 @@ class TitleBar(QWidget):
             else:
                 self.parent_window.showMaximized()
                 self.max_btn.setText("❐")
-    
+
     def close_window(self) -> None:
         if self.parent_window:
             self.parent_window.close()
-    
+
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             self.pressing = True
             self.start_pos = event.globalPosition().toPoint()
-    
+
     def mouseMoveEvent(self, event) -> None:
         if self.pressing and self.parent_window:
             if self.parent_window.isMaximized():
@@ -172,10 +179,10 @@ class TitleBar(QWidget):
             new_pos = self.parent_window.pos() + move
             self.parent_window.move(new_pos)
             self.start_pos = end_pos
-    
+
     def mouseReleaseEvent(self, event) -> None:
         self.pressing = False
-    
+
     def mouseDoubleClickEvent(self, event) -> None:
         self.toggle_maximize()
 
@@ -763,14 +770,15 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
+        # 顶部标题栏（工具栏 + 右侧窗口按钮）
+        self.title_bar = TitleBar(self)
+        root_layout.addWidget(self.title_bar)
+
         # 主体区域（左侧导航 + 右侧内容）
         main_layout = QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         root_layout.addLayout(main_layout)
-
-        # 顶部自定义标题栏（放在主体区域内，仅覆盖右侧内容区）
-        self.title_bar = TitleBar(self)
 
         # 左侧导航栏
         self._create_navbar(main_layout)
@@ -819,14 +827,7 @@ class MainWindow(QMainWindow):
         content_widget = QFrame()
         content_widget.setProperty("class", "content-area")
 
-        outer_layout = QVBoxLayout(content_widget)
-        outer_layout.setContentsMargins(0, 0, 0, 0)
-        outer_layout.setSpacing(0)
-
-        # 自定义标题栏（在菜单栏下方，且仅位于右侧内容区）
-        outer_layout.addWidget(self.title_bar)
-
-        content_layout = QVBoxLayout()
+        content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(30, 30, 30, 30)
         content_layout.setSpacing(0)
 
@@ -845,45 +846,50 @@ class MainWindow(QMainWindow):
         self.page_stack.addWidget(self.about_page)
 
         content_layout.addWidget(self.page_stack)
-        outer_layout.addLayout(content_layout)
 
         parent_layout.addWidget(content_widget)
 
     def _init_menu(self) -> None:
-        """初始化菜单栏"""
-        menubar = self.menuBar()
-        
+        """初始化菜单栏（嵌入自定义标题栏）"""
+        self.menu_bar = QMenuBar(self)
+        self.menu_bar.setNativeMenuBar(False)
+        self.menu_bar.setFixedHeight(40)
+
         # 文件 菜单
-        file_menu = menubar.addMenu("文件(&F)")
-        
+        file_menu = self.menu_bar.addMenu("文件(&F)")
+
         open_config_action = QAction("打开配置目录", self)
         open_config_action.triggered.connect(lambda: open_folder(CONFIG_DIR))
         file_menu.addAction(open_config_action)
-        
+
         open_output_action = QAction("打开输出目录", self)
         open_output_action.triggered.connect(lambda: open_folder(OUTPUT_DIR))
         file_menu.addAction(open_output_action)
-        
+
         file_menu.addSeparator()
-        
+
         exit_action = QAction("退出(&X)", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
-        
+
         # 工具 菜单
-        tools_menu = menubar.addMenu("工具(&T)")
-        
+        tools_menu = self.menu_bar.addMenu("工具(&T)")
+
         test_http_action = QAction("测试 HTTP 请求", self)
         test_http_action.triggered.connect(lambda: self._switch_page(1))
         tools_menu.addAction(test_http_action)
-        
+
         # 帮助 菜单
-        help_menu = menubar.addMenu("帮助(&H)")
-        
+        help_menu = self.menu_bar.addMenu("帮助(&H)")
+
         about_action = QAction("关于", self)
         about_action.triggered.connect(lambda: self._switch_page(3))
         help_menu.addAction(about_action)
+
+        # 将菜单栏作为标题栏主体，并在右侧加入窗口控制按钮
+        self.title_bar.set_center_widget(self.menu_bar)
+        self.title_bar.add_window_buttons()
 
     def _init_statusbar(self) -> None:
         """初始化状态栏"""

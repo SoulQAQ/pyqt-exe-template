@@ -38,6 +38,39 @@ QLabel[class="title-text"] {
     font-weight: bold;
 }
 
+QMenuBar {
+    background-color: transparent;
+    color: #E2E8F0;
+    border: none;
+    padding-left: 8px;
+    spacing: 2px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 8px 10px;
+    margin: 0 2px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: #334155;
+}
+
+QMenu {
+    background-color: #1E293B;
+    color: #E2E8F0;
+    border: 1px solid #334155;
+}
+
+QMenu::item {
+    padding: 6px 24px;
+}
+
+QMenu::item:selected {
+    background-color: #334155;
+}
+
 QPushButton[class="title-btn"] {
     background-color: transparent;
     color: #E2E8F0;
