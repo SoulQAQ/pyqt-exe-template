@@ -83,3 +83,6 @@ htmlcov/
 # Dependencies snapshot
 # ===========================================
 .venv/.requirements.snapshot
+
+
+.claude/

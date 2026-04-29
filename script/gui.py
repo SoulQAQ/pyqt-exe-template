@@ -103,7 +103,7 @@ class TitleBar(QWidget):
         self.setup_ui()
 
     def setup_ui(self) -> None:
-        self.setFixedHeight(40)
+        self.setFixedHeight(36)
         self.setProperty("class", "title-bar")
         self.setAutoFillBackground(True)
 
@@ -135,19 +135,19 @@ class TitleBar(QWidget):
 
         self.min_btn = QPushButton("─")
         self.min_btn.setProperty("class", "title-btn")
-        self.min_btn.setFixedSize(40, 40)
+        self.min_btn.setFixedSize(36, 36)
         self.min_btn.clicked.connect(self.minimize_window)
         btn_layout.addWidget(self.min_btn)
 
         self.max_btn = QPushButton("□")
         self.max_btn.setProperty("class", "title-btn")
-        self.max_btn.setFixedSize(40, 40)
+        self.max_btn.setFixedSize(36, 36)
         self.max_btn.clicked.connect(self.toggle_maximize)
         btn_layout.addWidget(self.max_btn)
 
         self.close_btn = QPushButton("✕")
         self.close_btn.setProperty("class", "title-btn-close")
-        self.close_btn.setFixedSize(40, 40)
+        self.close_btn.setFixedSize(36, 36)
         self.close_btn.clicked.connect(self.close_window)
         btn_layout.addWidget(self.close_btn)
 
@@ -206,7 +206,7 @@ class NavButton(QPushButton):
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setProperty("class", "nav-button")
-        self.setFixedHeight(45)
+        self.setFixedHeight(36)
 
 
 # ============================================================================
@@ -223,8 +223,8 @@ class CardWidget(QFrame):
     
     def setup_ui(self, title: str, description: str) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(10)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(6)
         
         if title:
             title_label = QLabel(title)
@@ -253,48 +253,48 @@ class DashboardPage(QWidget):
     def setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-        
+        layout.setSpacing(12)
+
         # 欢迎标题
         welcome_label = QLabel("欢迎使用 PyQt EXE 模板")
         welcome_label.setProperty("class", "page-title")
-        welcome_label.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
+        welcome_label.setFont(QFont("Microsoft YaHei UI", 18, QFont.Weight.Bold))
         layout.addWidget(welcome_label)
-        
+
         subtitle = QLabel("一个现代化的 PyQt6 桌面应用程序模板，内置 HTTP 客户端支持")
         subtitle.setProperty("class", "page-subtitle")
         layout.addWidget(subtitle)
-        
-        layout.addSpacing(20)
-        
+
+        layout.addSpacing(12)
+
         # 功能卡片区域
         cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(15)
-        
+        cards_layout.setSpacing(10)
+
         card1 = CardWidget("🎨 PyQt6 界面", "现代深色主题，QSS 样式")
         cards_layout.addWidget(card1)
-        
+
         card2 = CardWidget("🌐 HTTP 客户端", "内置 HTTP 请求测试工具")
         cards_layout.addWidget(card2)
-        
+
         card3 = CardWidget("⚙️ 配置管理", "基于 YAML 的配置系统")
         cards_layout.addWidget(card3)
-        
+
         card4 = CardWidget("📦 PyInstaller", "轻松打包 Windows EXE")
         cards_layout.addWidget(card4)
-        
+
         layout.addLayout(cards_layout)
-        
-        layout.addSpacing(20)
-        
+
+        layout.addSpacing(12)
+
         # 快捷操作区域
         actions_label = QLabel("快捷操作")
         actions_label.setProperty("class", "section-title")
-        actions_label.setFont(QFont("Microsoft YaHei UI", 14, QFont.Weight.Bold))
+        actions_label.setFont(QFont("Microsoft YaHei UI", 12, QFont.Weight.Bold))
         layout.addWidget(actions_label)
-        
+
         actions_layout = QHBoxLayout()
-        actions_layout.setSpacing(10)
+        actions_layout.setSpacing(8)
         
         self.open_config_btn = QPushButton("📁 打开配置目录")
         self.open_config_btn.setProperty("class", "action-button")
@@ -333,62 +333,62 @@ class HttpClientPage(QWidget):
     def setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
-        
+        layout.setSpacing(10)
+
         # 页面标题
         title = QLabel("HTTP 客户端")
         title.setProperty("class", "page-title")
-        title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
+        title.setFont(QFont("Microsoft YaHei UI", 18, QFont.Weight.Bold))
         layout.addWidget(title)
-        
+
         desc = QLabel("测试 HTTP 请求，支持自定义请求头和请求体")
         desc.setProperty("class", "page-subtitle")
         layout.addWidget(desc)
-        
-        layout.addSpacing(10)
-        
+
+        layout.addSpacing(8)
+
         # URL 和 Method 行
         url_layout = QHBoxLayout()
-        
+
         method_label = QLabel("方法：")
-        method_label.setFixedWidth(60)
+        method_label.setFixedWidth(50)
         url_layout.addWidget(method_label)
-        
+
         self.method_combo = QComboBox()
         self.method_combo.addItems(['GET', 'POST', 'PUT', 'DELETE'])
-        self.method_combo.setFixedWidth(100)
+        self.method_combo.setFixedWidth(80)
         url_layout.addWidget(self.method_combo)
-        
+
         url_label = QLabel("URL：")
-        url_label.setFixedWidth(40)
+        url_label.setFixedWidth(35)
         url_layout.addWidget(url_label)
-        
+
         self.url_input = QLineEdit()
         self.url_input.setPlaceholderText("输入 URL...")
         default_url = self.config_manager.get('network.default_url', 'https://httpbin.org/get')
         self.url_input.setText(default_url)
         url_layout.addWidget(self.url_input)
-        
+
         layout.addLayout(url_layout)
-        
+
         # Headers 输入
         headers_label = QLabel("请求头 (JSON)：")
         layout.addWidget(headers_label)
-        
+
         self.headers_input = QTextEdit()
         self.headers_input.setPlaceholderText('{\n  "Content-Type": "application/json"\n}')
-        self.headers_input.setMaximumHeight(80)
-        self.headers_input.setFont(QFont("Consolas", 10))
+        self.headers_input.setMaximumHeight(50)
+        self.headers_input.setFont(QFont("Consolas", 9))
         layout.addWidget(self.headers_input)
-        
+
         # Body 输入
         self.body_label = QLabel("请求体 (JSON)：")
         layout.addWidget(self.body_label)
-        
+
         self.body_input = QTextEdit()
         self.body_input.setPlaceholderText('{\n  "key": "value"\n}')
-        self.body_input.setMaximumHeight(100)
-        self.body_input.setFont(QFont("Consolas", 10))
+        self.body_input.setMaximumHeight(60)
+        self.body_input.setFont(QFont("Consolas", 9))
         layout.addWidget(self.body_input)
         
         # 发送按钮
@@ -430,7 +430,7 @@ class HttpClientPage(QWidget):
         # 响应内容
         self.response_output = QTextEdit()
         self.response_output.setReadOnly(True)
-        self.response_output.setFont(QFont("Consolas", 10))
+        self.response_output.setFont(QFont("Consolas", 9))
         self.response_output.setPlaceholderText("响应内容将显示在这里...")
         layout.addWidget(self.response_output)
     
@@ -524,70 +524,73 @@ class SettingsPage(QWidget):
     def setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(15)
-        
+        layout.setSpacing(10)
+
         # 页面标题
         title = QLabel("设置")
         title.setProperty("class", "page-title")
-        title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
+        title.setFont(QFont("Microsoft YaHei UI", 18, QFont.Weight.Bold))
         layout.addWidget(title)
-        
+
         desc = QLabel("配置应用程序设置")
         desc.setProperty("class", "page-subtitle")
         layout.addWidget(desc)
-        
-        layout.addSpacing(10)
-        
+
+        layout.addSpacing(8)
+
         # 应用设置组
         app_group = QGroupBox("应用程序")
         app_group.setProperty("class", "settings-group")
         app_layout = QVBoxLayout(app_group)
-        
+        app_layout.setSpacing(6)
+
         # App Name
         name_layout = QHBoxLayout()
         name_label = QLabel("应用名称：")
-        name_label.setFixedWidth(120)
+        name_label.setFixedWidth(85)
         self.name_input = QLineEdit()
         name_layout.addWidget(name_label)
         name_layout.addWidget(self.name_input)
         app_layout.addLayout(name_layout)
-        
+
         # App Version
         version_layout = QHBoxLayout()
         version_label = QLabel("应用版本：")
-        version_label.setFixedWidth(120)
+        version_label.setFixedWidth(85)
         self.version_input = QLineEdit()
         version_layout.addWidget(version_label)
         version_layout.addWidget(self.version_input)
         app_layout.addLayout(version_layout)
-        
+
         layout.addWidget(app_group)
-        
+
         # 网络设置组
         network_group = QGroupBox("网络")
         network_group.setProperty("class", "settings-group")
         network_layout = QVBoxLayout(network_group)
-        
+        network_layout.setSpacing(6)
+
         # Timeout
         timeout_layout = QHBoxLayout()
         timeout_label = QLabel("超时时间(秒)：")
-        timeout_label.setFixedWidth(120)
+        timeout_label.setFixedWidth(85)
         self.timeout_input = QLineEdit()
         timeout_layout.addWidget(timeout_label)
         timeout_layout.addWidget(self.timeout_input)
         network_layout.addLayout(timeout_layout)
-        
+
         layout.addWidget(network_group)
-        
+
         # 用户设置组
         user_group = QGroupBox("用户设置")
         user_group.setProperty("class", "settings-group")
         user_layout = QVBoxLayout(user_group)
-        
+        user_layout.setSpacing(6)
+
         # Output Path
         output_layout = QHBoxLayout()
         output_label = QLabel("输出路径：")
-        output_label.setFixedWidth(120)
+        output_label.setFixedWidth(85)
         self.output_input = QLineEdit()
         browse_btn = QPushButton("浏览")
         browse_btn.clicked.connect(self.browse_output)
@@ -595,10 +598,10 @@ class SettingsPage(QWidget):
         output_layout.addWidget(self.output_input)
         output_layout.addWidget(browse_btn)
         user_layout.addLayout(output_layout)
-        
+
         layout.addWidget(user_group)
-        
-        layout.addSpacing(20)
+
+        layout.addSpacing(12)
         
         # 保存按钮
         btn_layout = QHBoxLayout()
@@ -676,15 +679,15 @@ class AboutPage(QWidget):
     def setup_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-        
+        layout.setSpacing(12)
+
         # 页面标题
         title = QLabel("关于")
         title.setProperty("class", "page-title")
-        title.setFont(QFont("Microsoft YaHei UI", 24, QFont.Weight.Bold))
+        title.setFont(QFont("Microsoft YaHei UI", 18, QFont.Weight.Bold))
         layout.addWidget(title)
-        
-        layout.addSpacing(10)
+
+        layout.addSpacing(8)
         
         # 项目信息卡片
         info_card = CardWidget("", "")
@@ -796,13 +799,13 @@ class MainWindow(QMainWindow):
         """创建左侧导航栏"""
         nav_widget = QFrame()
         nav_widget.setProperty("class", "navbar")
-        nav_widget.setFixedWidth(220)
-        
+        nav_widget.setFixedWidth(180)
+
         nav_layout = QVBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(10, 0, 10, 20)
-        nav_layout.setSpacing(5)
-        
-        nav_layout.addSpacing(20)
+        nav_layout.setContentsMargins(8, 0, 8, 12)
+        nav_layout.setSpacing(4)
+
+        nav_layout.addSpacing(12)
         
         # 导航按钮
         self.nav_buttons = []
@@ -834,7 +837,7 @@ class MainWindow(QMainWindow):
         content_widget.setProperty("class", "content-area")
 
         content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(30, 30, 30, 30)
+        content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(0)
 
         # 页面堆栈
@@ -859,7 +862,7 @@ class MainWindow(QMainWindow):
         """初始化菜单栏（嵌入自定义标题栏）"""
         self.menu_bar = QMenuBar(self.title_bar)
         self.menu_bar.setNativeMenuBar(False)
-        self.menu_bar.setFixedHeight(40)
+        self.menu_bar.setFixedHeight(36)
 
         # 文件 菜单
         file_menu = self.menu_bar.addMenu("文件(&F)")
