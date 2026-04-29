@@ -23,7 +23,13 @@ QWidget {
 
 QWidget[class="title-bar"] {
     background-color: #1E293B;
+    border: none;
     border-bottom: 1px solid #334155;
+}
+
+QWidget[class="title-drag-zone"] {
+    background-color: #1E293B;
+    border: none;
 }
 
 QLabel[class="title-icon"] {
@@ -39,7 +45,7 @@ QLabel[class="title-text"] {
 }
 
 QMenuBar {
-    background-color: transparent;
+    background-color: #1E293B;
     color: #E2E8F0;
     border: none;
     padding-left: 8px;

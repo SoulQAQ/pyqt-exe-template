@@ -105,6 +105,7 @@ class TitleBar(QWidget):
     def setup_ui(self) -> None:
         self.setFixedHeight(40)
         self.setProperty("class", "title-bar")
+        self.setAutoFillBackground(True)
 
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -112,17 +113,22 @@ class TitleBar(QWidget):
 
     def set_center_widget(self, widget: QWidget) -> None:
         """设置中间区域（左侧菜单 + 中间拖拽空白区）"""
+        if widget.parent() is not self:
+            widget.setParent(self)
+
         self.layout.addWidget(widget, 0)
 
-        self.drag_zone = QWidget()
+        self.drag_zone = QWidget(self)
         self.drag_zone.setProperty("class", "title-drag-zone")
-        self.drag_zone.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.drag_zone.setAutoFillBackground(True)
         self.drag_zone.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.layout.addWidget(self.drag_zone, 1)
 
     def add_window_buttons(self) -> None:
         """添加窗口控制按钮到右侧"""
-        btn_container = QWidget()
+        btn_container = QWidget(self)
+        btn_container.setProperty("class", "title-bar")
+        btn_container.setAutoFillBackground(True)
         btn_layout = QHBoxLayout(btn_container)
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.setSpacing(0)
@@ -801,20 +807,20 @@ class MainWindow(QMainWindow):
         # 导航按钮
         self.nav_buttons = []
         
-        self.dashboard_btn = NavButton("首页", "H")
+        self.dashboard_btn = NavButton("首页")
         self.dashboard_btn.setChecked(True)
         nav_layout.addWidget(self.dashboard_btn)
         self.nav_buttons.append(self.dashboard_btn)
-        
-        self.http_btn = NavButton("HTTP 客户端", "G")
+
+        self.http_btn = NavButton("HTTP 客户端")
         nav_layout.addWidget(self.http_btn)
         self.nav_buttons.append(self.http_btn)
-        
-        self.settings_btn = NavButton("设置", "S")
+
+        self.settings_btn = NavButton("设置")
         nav_layout.addWidget(self.settings_btn)
         self.nav_buttons.append(self.settings_btn)
-        
-        self.about_btn = NavButton("关于", "i")
+
+        self.about_btn = NavButton("关于")
         nav_layout.addWidget(self.about_btn)
         self.nav_buttons.append(self.about_btn)
         
@@ -851,7 +857,7 @@ class MainWindow(QMainWindow):
 
     def _init_menu(self) -> None:
         """初始化菜单栏（嵌入自定义标题栏）"""
-        self.menu_bar = QMenuBar(self)
+        self.menu_bar = QMenuBar(self.title_bar)
         self.menu_bar.setNativeMenuBar(False)
         self.menu_bar.setFixedHeight(40)
 
