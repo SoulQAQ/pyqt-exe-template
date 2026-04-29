@@ -763,15 +763,14 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # 顶部自定义标题栏
-        self.title_bar = TitleBar(self)
-        root_layout.addWidget(self.title_bar)
-
         # 主体区域（左侧导航 + 右侧内容）
         main_layout = QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         root_layout.addLayout(main_layout)
+
+        # 顶部自定义标题栏（放在主体区域内，仅覆盖右侧内容区）
+        self.title_bar = TitleBar(self)
 
         # 左侧导航栏
         self._create_navbar(main_layout)
@@ -819,27 +818,35 @@ class MainWindow(QMainWindow):
         """创建右侧内容区"""
         content_widget = QFrame()
         content_widget.setProperty("class", "content-area")
-        
-        content_layout = QVBoxLayout(content_widget)
+
+        outer_layout = QVBoxLayout(content_widget)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.setSpacing(0)
+
+        # 自定义标题栏（在菜单栏下方，且仅位于右侧内容区）
+        outer_layout.addWidget(self.title_bar)
+
+        content_layout = QVBoxLayout()
         content_layout.setContentsMargins(30, 30, 30, 30)
         content_layout.setSpacing(0)
-        
+
         # 页面堆栈
         self.page_stack = QStackedWidget()
-        
+
         # 创建各页面
         self.dashboard_page = DashboardPage()
         self.http_page = HttpClientPage(self.config_manager)
         self.settings_page = SettingsPage(self.config_manager)
         self.about_page = AboutPage(self.config_manager)
-        
+
         self.page_stack.addWidget(self.dashboard_page)
         self.page_stack.addWidget(self.http_page)
         self.page_stack.addWidget(self.settings_page)
         self.page_stack.addWidget(self.about_page)
-        
+
         content_layout.addWidget(self.page_stack)
-        
+        outer_layout.addLayout(content_layout)
+
         parent_layout.addWidget(content_widget)
 
     def _init_menu(self) -> None:
