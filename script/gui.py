@@ -6,6 +6,7 @@ PyQt 主窗口模块
 """
 
 import json
+import sys
 from typing import Optional
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QSize, QPoint
@@ -23,6 +24,32 @@ from script.network import HttpClient, HttpResponse
 from script.paths import APP_DIR, CONFIG_DIR, OUTPUT_DIR, INPUT_DIR
 from script.utils import open_folder, format_json, safe_json_loads
 from script.logger import get_logger
+
+
+# ============================================================================
+# Windows DWM API 支持（用于深色模式标题栏和窗口圆角）
+# ============================================================================
+
+if sys.platform == 'win32':
+    import ctypes
+    from ctypes import wintypes
+
+    # DWM 窗口属性
+    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+    DWMWA_WINDOW_CORNER_PREFERENCE = 33
+
+    # 圆角偏好 (Windows 11)
+    DWMWCP_DEFAULT = 0
+    DWMWCP_DONOTROUND = 1
+    DWMWCP_ROUND = 2
+    DWMWCP_ROUNDSMALL = 3
+
+    # 加载 Windows API
+    user32 = ctypes.windll.user32
+    dwmapi = ctypes.windll.dwmapi
+
+    dwmapi.DwmSetWindowAttribute.restype = ctypes.c_int
+    dwmapi.DwmSetWindowAttribute.argtypes = [wintypes.HWND, ctypes.c_uint, ctypes.c_void_p, ctypes.c_uint]
 
 
 # ============================================================================
@@ -86,111 +113,6 @@ class HttpRequestWorker(QThread):
     def cancel(self) -> None:
         """取消请求"""
         self._is_cancelled = True
-
-
-# ============================================================================
-# 自定义标题栏
-# ============================================================================
-
-class TitleBar(QWidget):
-    """自定义标题栏（作为工具栏容器）"""
-
-    def __init__(self, parent: Optional[QMainWindow] = None):
-        super().__init__(parent)
-        self.parent_window = parent
-        self.pressing = False
-        self.start_pos = QPoint()
-        self.setup_ui()
-
-    def setup_ui(self) -> None:
-        self.setFixedHeight(36)
-        self.setProperty("class", "title-bar")
-        self.setAutoFillBackground(True)
-
-        self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-
-    def set_center_widget(self, widget: QWidget) -> None:
-        """设置中间区域（左侧菜单 + 中间拖拽空白区）"""
-        if widget.parent() is not self:
-            widget.setParent(self)
-
-        self.layout.addWidget(widget, 0)
-
-        self.drag_zone = QWidget(self)
-        self.drag_zone.setProperty("class", "title-drag-zone")
-        self.drag_zone.setAutoFillBackground(True)
-        self.drag_zone.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        self.layout.addWidget(self.drag_zone, 1)
-
-    def add_window_buttons(self) -> None:
-        """添加窗口控制按钮到右侧"""
-        btn_container = QWidget(self)
-        btn_container.setProperty("class", "title-bar")
-        btn_container.setAutoFillBackground(True)
-        btn_layout = QHBoxLayout(btn_container)
-        btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.setSpacing(0)
-
-        self.min_btn = QPushButton("─")
-        self.min_btn.setProperty("class", "title-btn")
-        self.min_btn.setFixedSize(36, 36)
-        self.min_btn.clicked.connect(self.minimize_window)
-        btn_layout.addWidget(self.min_btn)
-
-        self.max_btn = QPushButton("□")
-        self.max_btn.setProperty("class", "title-btn")
-        self.max_btn.setFixedSize(36, 36)
-        self.max_btn.clicked.connect(self.toggle_maximize)
-        btn_layout.addWidget(self.max_btn)
-
-        self.close_btn = QPushButton("✕")
-        self.close_btn.setProperty("class", "title-btn-close")
-        self.close_btn.setFixedSize(36, 36)
-        self.close_btn.clicked.connect(self.close_window)
-        btn_layout.addWidget(self.close_btn)
-
-        self.layout.addWidget(btn_container, 0)
-
-    def minimize_window(self) -> None:
-        if self.parent_window:
-            self.parent_window.showMinimized()
-
-    def toggle_maximize(self) -> None:
-        if self.parent_window:
-            if self.parent_window.isMaximized():
-                self.parent_window.showNormal()
-                self.max_btn.setText("□")
-            else:
-                self.parent_window.showMaximized()
-                self.max_btn.setText("❐")
-
-    def close_window(self) -> None:
-        if self.parent_window:
-            self.parent_window.close()
-
-    def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.pressing = True
-            self.start_pos = event.globalPosition().toPoint()
-
-    def mouseMoveEvent(self, event) -> None:
-        if self.pressing and self.parent_window:
-            if self.parent_window.isMaximized():
-                self.parent_window.showNormal()
-                self.max_btn.setText("□")
-            end_pos = event.globalPosition().toPoint()
-            move = end_pos - self.start_pos
-            new_pos = self.parent_window.pos() + move
-            self.parent_window.move(new_pos)
-            self.start_pos = end_pos
-
-    def mouseReleaseEvent(self, event) -> None:
-        self.pressing = False
-
-    def mouseDoubleClickEvent(self, event) -> None:
-        self.toggle_maximize()
 
 
 # ============================================================================
@@ -732,62 +654,95 @@ class AboutPage(QWidget):
 # ============================================================================
 
 class MainWindow(QMainWindow):
-    """应用程序主窗口"""
+    """
+    应用程序主窗口
+
+    布局结构：
+    - 系统原生标题栏（Windows 绘制，包含窗口按钮）
+    - 左侧导航栏（180px）
+    - 右侧内容区
+
+    使用 Windows DWM API：
+    - DWMWA_USE_IMMERSIVE_DARK_MODE 启用深色模式标题栏
+    - DWMWA_WINDOW_CORNER_PREFERENCE 启用窗口圆角（Windows 11）
+    """
 
     def __init__(self):
         super().__init__()
-        
+
         self.logger = get_logger()
         self.config_manager = get_config_manager()
         self.config = self.config_manager.load()
-        
-        # 设置无边框窗口
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowMinMaxButtonsHint
-        )
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, False)
-        
+
         self._init_ui()
-        self._init_menu()
         self._init_statusbar()
         self._load_window_state()
         self._connect_signals()
-        
+
+        # Windows 平台下启用深色模式标题栏和窗口圆角
+        if sys.platform == 'win32':
+            self._setup_native_title_bar()
+
         self.logger.info("主窗口初始化完成")
+
+    def _setup_native_title_bar(self) -> None:
+        """
+        配置 Windows 原生标题栏样式
+
+        通过 DWM API 设置：
+        - 深色模式标题栏（与深色主题匹配）
+        - 窗口圆角（Windows 11）
+        """
+        try:
+            hwnd = int(self.winId())
+
+            # 1. 启用深色模式标题栏（Windows 10 1809+ / Windows 11）
+            dark_mode = ctypes.c_int(1)
+            dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_USE_IMMERSIVE_DARK_MODE,
+                ctypes.byref(dark_mode),
+                ctypes.sizeof(dark_mode)
+            )
+
+            # 2. 设置窗口圆角（Windows 11）
+            corner_preference = ctypes.c_int(DWMWCP_ROUND)
+            dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                ctypes.byref(corner_preference),
+                ctypes.sizeof(corner_preference)
+            )
+
+            self.logger.info("原生标题栏样式配置完成")
+
+        except Exception as e:
+            self.logger.warning(f"原生标题栏样式配置失败: {e}")
 
     def _init_ui(self) -> None:
         """初始化用户界面"""
         # 窗口设置
         app_name = self.config_manager.get('app.name', 'PyQt EXE 模板')
-        
+        self.setWindowTitle(app_name)
+
         min_width = self.config_manager.get('window.minimum_width', 900)
         min_height = self.config_manager.get('window.minimum_height', 600)
         self.setMinimumSize(min_width, min_height)
-        
+
         # 默认大小
         width = self.config_manager.get('window.width', 1100)
         height = self.config_manager.get('window.height', 720)
         self.resize(width, height)
-        
+
         # 中央部件
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
-        # 主布局
-        root_layout = QVBoxLayout(central_widget)
-        root_layout.setContentsMargins(0, 0, 0, 0)
-        root_layout.setSpacing(0)
 
-        # 顶部标题栏（工具栏 + 右侧窗口按钮）
-        self.title_bar = TitleBar(self)
-        root_layout.addWidget(self.title_bar)
-
-        # 主体区域（左侧导航 + 右侧内容）
-        main_layout = QHBoxLayout()
+        # 主布局：直接使用 QHBoxLayout，左侧导航 + 右侧内容
+        # 不再有顶部工具栏区域
+        main_layout = QHBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        root_layout.addLayout(main_layout)
 
         # 左侧导航栏
         self._create_navbar(main_layout)
@@ -802,14 +757,12 @@ class MainWindow(QMainWindow):
         nav_widget.setFixedWidth(180)
 
         nav_layout = QVBoxLayout(nav_widget)
-        nav_layout.setContentsMargins(8, 0, 8, 12)
+        nav_layout.setContentsMargins(8, 12, 8, 12)  # top margin 从 0 改为 12
         nav_layout.setSpacing(4)
 
-        nav_layout.addSpacing(12)
-        
         # 导航按钮
         self.nav_buttons = []
-        
+
         self.dashboard_btn = NavButton("首页")
         self.dashboard_btn.setChecked(True)
         nav_layout.addWidget(self.dashboard_btn)
@@ -826,9 +779,9 @@ class MainWindow(QMainWindow):
         self.about_btn = NavButton("关于")
         nav_layout.addWidget(self.about_btn)
         self.nav_buttons.append(self.about_btn)
-        
+
         nav_layout.addStretch()
-        
+
         parent_layout.addWidget(nav_widget)
 
     def _create_content_area(self, parent_layout: QHBoxLayout) -> None:
@@ -858,55 +811,13 @@ class MainWindow(QMainWindow):
 
         parent_layout.addWidget(content_widget)
 
-    def _init_menu(self) -> None:
-        """初始化菜单栏（嵌入自定义标题栏）"""
-        self.menu_bar = QMenuBar(self.title_bar)
-        self.menu_bar.setNativeMenuBar(False)
-        self.menu_bar.setFixedHeight(36)
-
-        # 文件 菜单
-        file_menu = self.menu_bar.addMenu("文件(&F)")
-
-        open_config_action = QAction("打开配置目录", self)
-        open_config_action.triggered.connect(lambda: open_folder(CONFIG_DIR))
-        file_menu.addAction(open_config_action)
-
-        open_output_action = QAction("打开输出目录", self)
-        open_output_action.triggered.connect(lambda: open_folder(OUTPUT_DIR))
-        file_menu.addAction(open_output_action)
-
-        file_menu.addSeparator()
-
-        exit_action = QAction("退出(&X)", self)
-        exit_action.setShortcut("Ctrl+Q")
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
-
-        # 工具 菜单
-        tools_menu = self.menu_bar.addMenu("工具(&T)")
-
-        test_http_action = QAction("测试 HTTP 请求", self)
-        test_http_action.triggered.connect(lambda: self._switch_page(1))
-        tools_menu.addAction(test_http_action)
-
-        # 帮助 菜单
-        help_menu = self.menu_bar.addMenu("帮助(&H)")
-
-        about_action = QAction("关于", self)
-        about_action.triggered.connect(lambda: self._switch_page(3))
-        help_menu.addAction(about_action)
-
-        # 将菜单栏作为标题栏主体，并在右侧加入窗口控制按钮
-        self.title_bar.set_center_widget(self.menu_bar)
-        self.title_bar.add_window_buttons()
-
     def _init_statusbar(self) -> None:
         """初始化状态栏"""
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        
+
         self.status_bar.showMessage("就绪")
-        
+
         # 进度条
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
@@ -937,7 +848,7 @@ class MainWindow(QMainWindow):
         self.http_btn.clicked.connect(lambda: self._switch_page(1))
         self.settings_btn.clicked.connect(lambda: self._switch_page(2))
         self.about_btn.clicked.connect(lambda: self._switch_page(3))
-        
+
         # Dashboard 快捷按钮
         self.dashboard_page.open_config_btn.clicked.connect(lambda: open_folder(CONFIG_DIR))
         self.dashboard_page.open_output_btn.clicked.connect(lambda: open_folder(OUTPUT_DIR))
@@ -946,11 +857,11 @@ class MainWindow(QMainWindow):
     def _switch_page(self, index: int) -> None:
         """切换页面"""
         self.page_stack.setCurrentIndex(index)
-        
+
         # 更新导航按钮状态
         for i, btn in enumerate(self.nav_buttons):
             btn.setChecked(i == index)
-        
+
         # 更新状态栏
         page_names = ["首页", "HTTP 客户端", "设置", "关于"]
         self.status_bar.showMessage(f"{page_names[index]}")
