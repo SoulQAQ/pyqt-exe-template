@@ -104,12 +104,23 @@ graph TB
 ### 窗口结构
 
 ```
-MainWindow
-├── QMenuBar (菜单栏)
-├── QToolBar (工具栏)
+MainWindow (FramelessWindowHint)
+├── TitleBar (自绘标题栏, 36px)
+│   ├── titleLabel (应用标题)
+│   ├── titleToolbar (标题工具栏，紧凑排列)
+│   │   ├── 文件(F) → QMenu
+│   │   ├── 编辑(E) → QMenu
+│   │   ├── 选择(S) → QMenu
+│   │   ├── 查看(V) → QMenu
+│   ├── stretch (拖拽空白区)
+│   ├── themeSwitcher (主题切换 pill)
+│   ├── settingsButton (设置按钮)
+│   └── windowControls (窗口控制按钮)
+│       ├── minimize_btn
+│       ├── maximize_btn
+│       └── close_btn
 ├── Central Widget
-│   ├── NavWidget (导航栏)
-│   │   ├── Logo Label
+│   ├── NavWidget (导航栏, 180px)
 │   │   └── Nav Buttons
 │   └── Content Widget (内容区)
 │       └── QStackedWidget
@@ -119,6 +130,42 @@ MainWindow
 │           └── AboutPage
 └── QStatusBar (状态栏)
 ```
+
+### 标题栏布局规则
+
+标题栏从左到右布局：
+
+```
+[应用标题] [标题工具栏] [stretch 拖拽区] [主题pill] [设置] [窗口控制按钮]
+```
+
+**关键规则**：
+
+1. 标题工具栏按钮使用 `QSizePolicy.Fixed`，宽度自适应文字
+2. stretch 只放在工具栏之后，作为拖拽空白区
+3. 窗口控制按钮固定尺寸（36x36）
+
+### 标题工具栏配置
+
+标题工具栏内容通过 `_get_title_toolbar_items()` 方法配置：
+
+```python
+def _get_title_toolbar_items(self) -> list:
+    return [
+        {
+            "key": "file",
+            "text": "文件(F)",
+            "menu_items": [
+                {"text": "新建项目", "shortcut": "Ctrl+N", "callback": "_action_new_project"},
+                {"separator": True},
+                {"text": "退出", "callback": "_on_close"},
+            ]
+        },
+        # ...
+    ]
+```
+
+> 详细配置见 [ui-titlebar.md](ui-titlebar.md)
 
 ### 页面切换机制
 
@@ -289,13 +336,29 @@ class PluginManager:
 
 ### 3. 主题切换
 
+主题切换使用统一入口 `MainWindow.apply_theme()`：
+
 ```python
-# 加载不同主题
-def load_theme(theme_name: str):
-    qss_path = resource_path(f'styles/{theme_name}.qss')
-    with open(qss_path) as f:
-        app.setStyleSheet(f.read())
+def apply_theme(self, theme: str) -> None:
+    """应用主题 - 统一入口，同步所有控件"""
+    # 加载样式表
+    stylesheet = self._load_theme_stylesheet(theme)
+    QApplication.instance().setStyleSheet(stylesheet)
+
+    # 同步所有主题控件状态
+    self.title_bar.update_theme_state(theme)      # 标题栏按钮
+    self.settings_page.update_theme_buttons(theme) # 设置页按钮
+
+    # 保存配置
+    self.config_manager.set('ui.theme', theme)
 ```
+
+两种切换方式（效果相同）：
+
+1. 标题栏主题 pill 按钮
+2. 设置页面主题选择按钮
+
+> 详细说明见 [ui-titlebar.md](ui-titlebar.md)
 
 ### 4. 自动更新
 

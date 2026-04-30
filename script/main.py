@@ -23,15 +23,19 @@ from script.logger import init_logging, get_logger
 from script.config_manager import get_config_manager
 
 
-def load_stylesheet() -> str:
+def load_stylesheet(theme: str = 'dark') -> str:
     """
     加载 QSS 样式表
-    
+
+    Args:
+        theme: 主题名称，'dark' 或 'light'
+
     Returns:
         str: 样式表内容
     """
-    qss_path = resource_path('styles/modern.qss')
-    
+    style_file = 'styles/modern.qss' if theme == 'dark' else 'styles/light.qss'
+    qss_path = resource_path(style_file)
+
     try:
         if qss_path.exists():
             with open(qss_path, 'r', encoding='utf-8') as f:
@@ -78,12 +82,13 @@ def main() -> int:
         config_manager = get_config_manager()
         config = config_manager.load()
         logger.info("Configuration loaded")
-        
-        # 加载样式表
-        stylesheet = load_stylesheet()
+
+        # 获取主题设置并加载对应样式表
+        theme = config_manager.get('ui.theme', 'dark')
+        stylesheet = load_stylesheet(theme)
         if stylesheet:
             app.setStyleSheet(stylesheet)
-            logger.info("Stylesheet loaded successfully")
+            logger.info(f"Stylesheet loaded successfully (theme: {theme})")
         else:
             logger.warning("No stylesheet loaded, using default style")
         
